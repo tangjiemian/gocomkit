@@ -1,7 +1,6 @@
-package reflectx
+package gocomkit
 
 import (
-	"github.com/tangjiemian/gocomkit"
 	"reflect"
 	"strings"
 	"testing"
@@ -20,7 +19,7 @@ func TestBasic(t *testing.T) {
 
 	f := Foo{1, 2, 3}
 	fv := reflect.ValueOf(f)
-	m := gocomkit.NewMapperFunc("", func(s string) string { return s })
+	m := NewMapperFunc("", func(s string) string { return s })
 
 	v := m.FieldByName(fv, "A")
 	if ival(v) != f.A {
@@ -52,7 +51,7 @@ func TestBasicEmbedded(t *testing.T) {
 		Bar `db:"Bar"`
 	}
 
-	m := gocomkit.NewMapperFunc("db", func(s string) string { return s })
+	m := NewMapperFunc("db", func(s string) string { return s })
 
 	z := Baz{}
 	z.A = 1
@@ -104,7 +103,7 @@ func TestEmbeddedSimple(t *testing.T) {
 	}
 	z := Item{}
 
-	m := gocomkit.NewMapper("db")
+	m := NewMapper("db")
 	m.TypeMap(reflect.TypeOf(z))
 }
 
@@ -123,7 +122,7 @@ func TestBasicEmbeddedWithTags(t *testing.T) {
 		Bar     // `db:""` is implied for an embedded struct
 	}
 
-	m := gocomkit.NewMapper("db")
+	m := NewMapper("db")
 
 	z := Baz{}
 	z.A = 1
@@ -162,7 +161,7 @@ func TestBasicEmbeddedWithSameName(t *testing.T) {
 		B int `db:"b"`
 	}
 
-	m := gocomkit.NewMapper("db")
+	m := NewMapper("db")
 
 	z := FooExt{}
 	z.A = 1
@@ -191,7 +190,7 @@ func TestBasicEmbeddedWithSameName(t *testing.T) {
 }
 
 func TestFlatTags(t *testing.T) {
-	m := gocomkit.NewMapper("db")
+	m := NewMapper("db")
 
 	type Asset struct {
 		Title string `db:"title"`
@@ -216,7 +215,7 @@ func TestFlatTags(t *testing.T) {
 }
 
 func TestNestedStruct(t *testing.T) {
-	m := gocomkit.NewMapper("db")
+	m := NewMapper("db")
 
 	type Details struct {
 		Active bool `db:"active"`
@@ -256,7 +255,7 @@ func TestNestedStruct(t *testing.T) {
 }
 
 func TestInlineStruct(t *testing.T) {
-	m := gocomkit.NewMapperTagFunc("db", strings.ToLower, nil)
+	m := NewMapperTagFunc("db", strings.ToLower, nil)
 
 	type Employee struct {
 		Name string
@@ -291,13 +290,13 @@ func TestRecursiveStruct(t *testing.T) {
 	type Person struct {
 		Parent *Person
 	}
-	m := gocomkit.NewMapperFunc("db", strings.ToLower)
+	m := NewMapperFunc("db", strings.ToLower)
 	var p *Person
 	m.TypeMap(reflect.TypeOf(p))
 }
 
 func TestFieldsEmbedded(t *testing.T) {
-	m := gocomkit.NewMapper("db")
+	m := NewMapper("db")
 
 	type Person struct {
 		Name string `db:"name,size=64"`
@@ -387,7 +386,7 @@ func TestFieldsEmbedded(t *testing.T) {
 }
 
 func TestPtrFields(t *testing.T) {
-	m := gocomkit.NewMapperTagFunc("db", strings.ToLower, nil)
+	m := NewMapperTagFunc("db", strings.ToLower, nil)
 	type Asset struct {
 		Title string
 	}
@@ -415,7 +414,7 @@ func TestPtrFields(t *testing.T) {
 }
 
 func TestNamedPtrFields(t *testing.T) {
-	m := gocomkit.NewMapperTagFunc("db", strings.ToLower, nil)
+	m := NewMapperTagFunc("db", strings.ToLower, nil)
 
 	type User struct {
 		Name string
@@ -471,7 +470,7 @@ func TestFieldMap(t *testing.T) {
 	}
 
 	f := Foo{1, 2, 3}
-	m := gocomkit.NewMapperFunc("db", strings.ToLower)
+	m := NewMapperFunc("db", strings.ToLower)
 
 	fm := m.FieldMap(reflect.ValueOf(f))
 
@@ -495,7 +494,7 @@ func TestTagNameMapping(t *testing.T) {
 		StrategyName string
 	}
 
-	m := gocomkit.NewMapperTagFunc("json", strings.ToUpper, func(value string) string {
+	m := NewMapperTagFunc("json", strings.ToUpper, func(value string) string {
 		if strings.Contains(value, ",") {
 			return strings.Split(value, ",")[0]
 		}
@@ -518,7 +517,7 @@ func TestMapping(t *testing.T) {
 		WearsGlasses bool `db:"wears_glasses"`
 	}
 
-	m := gocomkit.NewMapperFunc("db", strings.ToLower)
+	m := NewMapperFunc("db", strings.ToLower)
 	p := Person{1, "Jason", true}
 	mapping := m.TypeMap(reflect.TypeOf(p))
 
@@ -605,7 +604,7 @@ func TestGetByTraversal(t *testing.T) {
 		},
 	}
 
-	m := gocomkit.NewMapperFunc("db", func(n string) string { return n })
+	m := NewMapperFunc("db", func(n string) string { return n })
 	tm := m.TypeMap(reflect.TypeOf(A{}))
 
 	for i, tc := range testCases {
@@ -737,7 +736,7 @@ func TestMapperMethodsByName(t *testing.T) {
 	for i, tc := range testCases {
 		names[i] = tc.Name
 	}
-	m := gocomkit.NewMapperFunc("db", func(n string) string { return n })
+	m := NewMapperFunc("db", func(n string) string { return n })
 	v := reflect.ValueOf(val)
 	values := m.FieldsByName(v, names)
 	if len(values) != len(testCases) {
@@ -831,16 +830,16 @@ func TestFieldByIndexes(t *testing.T) {
 			}
 		}
 
-		checkResults(gocomkit.FieldByIndexes(reflect.ValueOf(tc.value), tc.indexes))
+		checkResults(FieldByIndexes(reflect.ValueOf(tc.value), tc.indexes))
 		if tc.readOnly {
-			checkResults(gocomkit.FieldByIndexesReadOnly(reflect.ValueOf(tc.value), tc.indexes))
+			checkResults(FieldByIndexesReadOnly(reflect.ValueOf(tc.value), tc.indexes))
 		}
 	}
 }
 
 func TestMustBe(t *testing.T) {
 	typ := reflect.TypeOf(E1{})
-	gocomkit.mustBe(typ, reflect.Struct)
+	mustBe(typ, reflect.Struct)
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -861,7 +860,7 @@ func TestMustBe(t *testing.T) {
 	}()
 
 	typ = reflect.TypeOf("string")
-	gocomkit.mustBe(typ, reflect.Struct)
+	mustBe(typ, reflect.Struct)
 	t.Fatal("got here, didn't expect to")
 }
 
@@ -936,7 +935,7 @@ func BenchmarkFieldByIndexL4(b *testing.B) {
 	idx := []int{0, 0, 0, 0}
 	for i := 0; i < b.N; i++ {
 		v := reflect.ValueOf(e4)
-		f := gocomkit.FieldByIndexes(v, idx)
+		f := FieldByIndexes(v, idx)
 		if f.Interface().(int) != 1 {
 			b.Fatal("Wrong value.")
 		}
@@ -960,7 +959,7 @@ func BenchmarkTraversalsByName(b *testing.B) {
 		C C
 	}
 
-	m := gocomkit.NewMapper("")
+	m := NewMapper("")
 	t := reflect.TypeOf(D{})
 	names := []string{"C", "B", "A", "Value"}
 
@@ -990,7 +989,7 @@ func BenchmarkTraversalsByNameFunc(b *testing.B) {
 		C C
 	}
 
-	m := gocomkit.NewMapper("")
+	m := NewMapper("")
 	t := reflect.TypeOf(D{})
 	names := []string{"C", "B", "A", "Z", "Y"}
 
